@@ -1,0 +1,142 @@
+
+# -*- coding: utf-8 -*-
+
+from scipy.io import wavfile
+
+import numpy as np
+
+from signals import *
+
+import os.path
+import wave
+import pyaudio
+import math
+
+
+FRAME_RATE_DEFAULT = 60.0
+
+class WavSignal(Signal):
+
+    def __init__(self, filepath):
+        Signal.__init__(self)
+        
+        self.setFile(filepath)
+
+    def __init__(self):
+        Signal.__init__(self)
+
+    def _resetVars(self):
+        Signal._resetVars(self)
+        
+        self.__rate = 0
+        self.__frame_size = 0
+        self.__frame_count = 0
+        self.__frame_rate = FRAME_RATE_DEFAULT
+        
+        self.__file = ""
+        
+    def __checkFile(self, filepath):
+        if (not os.path.isfile(filepath)):
+            raise SignalException(SignalErrors.FILE_NOT_FOUND, "File not found!")
+
+        name, extension = os.path.splitext(filepath)
+
+        if (extension != ".wav"):
+            raise SignalException(SignalErrors.INVALID_EXTENSION, "File extension must be .wav!")
+
+        return True
+
+    def setFile(self, filepath):
+        self._resetVars()
+        
+        self.__checkFile(filepath)
+        self.__file = filepath
+
+    def loadFile(self):
+        if (self.__file != ""):
+            self.__rate, self._data = wavfile.read(self.__file)
+            self.__frame_size = float(self.__rate) / float(self.__frame_rate)
+            self.__frame_count = len(self._data) / int(self.__frame_size)
+        else:
+            raise SignalException(SignalErrors.FILE_EMPTY)
+
+    def getFileInfo(self):
+        return (self.__rate, self.__frame_size, self.__frame_count)
+
+    def getAudioData(self):
+
+        print "RATE:", self.__rate
+        print "SIZE:", self._data.size
+
+        if (self._data.ndim == 2):
+            data_left = np.squeeze(np.asarray(self._data * np.matrix('1;0')))
+            data_right = np.squeeze(np.asarray(self._data * np.matrix('0;1')))
+
+            data = np.vstack((data_left, data_right))
+        else:
+            data = self._data
+            
+        norm = data / np.linalg.norm(data)
+        val = max(abs(norm.max()), abs(norm.min()))
+            
+        return norm / val
+    
+    def getData(self):
+
+        return self.__getMonoSignal(self._data)
+        
+    def generateAnimation(self):
+
+        Signal.generateAnimation(self)
+                        
+        if (self._data.size > 0):
+            
+            self._animation_data = self._data.__copy__()
+            self._animation_data = self.__getMonoSignal(self._animation_data)
+            
+            self.applyParameters()
+
+            
+    def __getMonoSignal(self, data):
+        
+        data_left = np.squeeze(np.asarray(data * np.matrix('1;0')))
+        data_right = np.squeeze(np.asarray(data * np.matrix('0;1')))
+
+        #no need for 0.5 multiplication: values are scaled later
+        #data_mono = 0.5 * (data_right + data_left)
+        data_mono = (data_right + data_left) * 0.5
+
+        return data_mono
+            
+    def getTimeString(self):
+        if (len(self._data) == 0):
+            return "Empty data"
+            
+        total_time = self.getTotalSeconds()
+        str_time = "0:00"
+        try:
+            str_time = str(int(math.floor(total_time/60.0))) + ":" + str(self.total_time % 60)
+        except:
+            pass
+
+        return str_time
+
+    def getTotalSeconds(self):
+        total_time = 0.0
+
+        try:
+            total_time = float(len(self._data))/ (self.__rate)
+        except:
+            pass
+        
+        return total_time
+        
+    def getFrameSize(self):
+        return self.__frame_size
+
+    def getFrameCount(self):
+        return self.__frame_count
+
+    def getFileRate(self):
+        return self.__rate
+        

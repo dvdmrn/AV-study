@@ -1,0 +1,55 @@
+# -*- coding: utf-8 -*-
+
+from parameters import *
+
+from scipy.fftpack import rfft, irfft
+
+import numpy as np
+
+LPF_TYPE = 1000
+DEFAULT_LPF_FILTER_FREQUENCY_HZ = 20
+
+#New parameter class
+#Every parameter class MUST inherit from IParameter and
+#be formated in the following scope
+
+class LPFParameter(IParameter):
+
+    def __init__(self):
+
+        #Initializes class as a parameter
+        IParameter.__init__(self, "Low Pass Filter", LPF_TYPE)
+        
+	#Sets parameter variables. These variables can be accessed and changed by the user in the user interface.
+	#You can insert an unlimited number of variables.
+	#To add more variables, you can do something like this:
+	#self._variables["VARIABLE_NAME"] = VALUE
+
+        self._variables["FREQUENCY"] = DEFAULT_LPF_FILTER_FREQUENCY_HZ
+
+    def applyParameter(self, data):
+
+	#This is the function that processes data. 
+	#The input data is stored in the variable 'data'
+	#You must return the processes data using 'return processed_data'
+	#See example below:
+        
+        #low pass filter
+        fftdata = rfft(data)
+        fftdata[int(float(self._variables["FREQUENCY"])*np.pi*2):] = 0
+
+        ##removes negative values
+        filtered_data = irfft(fftdata).clip(0)
+
+        return filtered_data
+
+#This is the function called by the animation player to load the
+#parameter. You must implement this function and initialize
+#the class you implemented above, as its instance will be returned
+#to the main program
+
+def loadParameter():
+
+    lpf = LPFParameter()
+    lpf.setVariable("FREQUENCY", 11)
+    return lpf

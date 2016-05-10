@@ -1,0 +1,51 @@
+# -*- coding: utf-8 -*-
+
+from parameters import *
+
+from scipy.signal import cheby2, lfilter
+
+import numpy as np
+
+import matplotlib.pylab as plt
+
+LPF_TYPE = 1010
+DEFAULT_LPF_FILTER_FREQUENCY_HZ = 20
+DEFAULT_LPF_FILTER_ORDER = 5
+DEFAULT_LPF_FILTER_ATENUATION = 40
+
+class ChebyshevLPF(IParameter):
+
+    def __init__(self):
+
+        IParameter.__init__(self, "Chebyshev-II LPF", LPF_TYPE)
+        
+        self.setVariable("FREQUENCY", DEFAULT_LPF_FILTER_FREQUENCY_HZ)
+        self.setVariable("ORDER", DEFAULT_LPF_FILTER_ORDER)
+
+    def cheby2_lowpass(self, lowcut, atenuation, fs, order):
+        nyq = 0.5 * fs
+        low = lowcut / nyq
+        b, a = cheby2(order, low, atenuation, btype='low')
+        return b, a
+
+
+    def cheby2_lowpass_filter(self, data, lowcut, atenuation, fs, order):
+        b, a = self.cheby2_lowpass(lowcut, atenuation, fs, order)
+        y = lfilter(b, a, data)
+
+        return y
+
+    def applyParameter(self, data):
+
+        rate = self.getHiddenVariable("AUDIO_FRAME_RATE")
+        frequency = self.getVariable("FREQUENCY")
+        order = int(self.getVariable("ORDER"))
+        
+        filtered_data = self.cheby2_lowpass_filter(data, frequency, DEFAULT_LPF_FILTER_ATENUATION, rate, order)
+        
+        return filtered_data
+
+
+def loadParameter():
+
+    return ChebyshevLPF()

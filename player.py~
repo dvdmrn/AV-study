@@ -1,0 +1,62 @@
+# -*- coding: utf-8 -*-
+
+#import pdb; pdb.set_trace()
+
+#import numpy as np
+
+#import matplotlib.pyplot as plt
+#import matplotlib.widgets as widgets
+
+#from matplotlib.patches import Polygon
+
+#import time
+#import sys
+#import math
+#import threading
+#import ConfigParser
+
+## local imports
+#from animation import *
+from window import *
+#from parameters import *
+#from signals import *
+#from wavsignal import *
+#from hdfsignal import *
+#from lpf import *
+
+#from animationlist import *
+
+#from mainanimation import *
+#from plotanimations import *
+
+CONFIG_FILE = 'config.ini'
+MESSAGE_QUEUE_NAME = '/test_queue2'
+
+global threads
+global window, app
+
+def windowStart():
+    
+    app = QtGui.QApplication(sys.argv)    
+    window = MainWindow()
+    
+    window.show()
+
+    return (app, window)
+
+def startApp():
+    
+    global app, window, threads
+    
+    app, window = windowStart()
+    threads = []
+    
+    app.exec_()
+
+    sys.exit()
+
+
+startApp()
+
+
+

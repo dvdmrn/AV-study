@@ -1,0 +1,40 @@
+# -*- coding: utf-8 -*-
+
+import Queue
+import tables
+
+import sys
+
+def enum(*sequential, **named):
+    enums = dict(zip(sequential, range(len(sequential))), **named)
+    return type('Enum', (), enums)
+
+MainAnimationErrors = enum('FILE_EMPTY', 'FILE_NOT_FOUND', 'INVALID_EXTENSION', 'INVALID_FORMAT', 'INVALID_PARAMETER')
+
+class AnimationQueueException(Exception):
+    def __init__(self, code=0, message=""):
+        self.args = (code, message)
+        
+class AnimationQueue(Queue.Queue):
+
+    def __init__(self):
+        Queue.Queue.__init__(self)
+
+        self._file = ""
+        self.__folder_path = os.path.dirname(os.path.realpath(__file__)) + "/data/queues/"
+
+        print self.__folder_path
+        
+    def __checkFile(self, file):
+        if (file != ""):
+            if (os.path.isfile(self.__folder_path + file)):
+                return True
+            
+        return False
+        
+    def loadFile(self, file):
+        if (self.__checkFile(file)):
+            pass
+
+    def saveFile(self, file=self._file):
+        tables.openFile(self.__folder_path + file, 'w')
