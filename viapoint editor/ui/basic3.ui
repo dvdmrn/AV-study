@@ -1,0 +1,444 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>605</width>
+    <height>322</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="windowTitle">
+   <string>Animation Player</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QGroupBox" name="group_player">
+    <property name="geometry">
+     <rect>
+      <x>340</x>
+      <y>20</y>
+      <width>251</width>
+      <height>241</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Animation player</string>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+    <widget class="QPushButton" name="button_start">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>80</y>
+       <width>251</width>
+       <height>27</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Start</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_2">
+     <property name="geometry">
+      <rect>
+       <x>140</x>
+       <y>30</y>
+       <width>51</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Total time:</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_total_time">
+     <property name="geometry">
+      <rect>
+       <x>200</x>
+       <y>30</y>
+       <width>48</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>00:00</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_3">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>30</y>
+       <width>48</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Executed:</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_4">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>50</y>
+       <width>51</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Remaining:</string>
+     </property>
+    </widget>
+    <widget class="Line" name="line">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>110</y>
+       <width>251</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_5">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>130</y>
+       <width>71</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Execution log</string>
+     </property>
+    </widget>
+    <widget class="QPlainTextEdit" name="text_log">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>150</y>
+       <width>251</width>
+       <height>84</height>
+      </rect>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+     <property name="centerOnScroll">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="group_list">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>0</y>
+      <width>301</width>
+      <height>271</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string/>
+    </property>
+    <widget class="QListWidget" name="list_list">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>30</y>
+       <width>256</width>
+       <height>192</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="button_save_list">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>180</x>
+       <y>240</y>
+       <width>85</width>
+       <height>27</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Save</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="button_new_list">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>240</y>
+       <width>85</width>
+       <height>27</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>New</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="button_add">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>270</x>
+       <y>100</y>
+       <width>21</width>
+       <height>27</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="toolTip">
+      <string>Add animation to queue</string>
+     </property>
+     <property name="text">
+      <string>+</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="button_load_list">
+     <property name="geometry">
+      <rect>
+       <x>90</x>
+       <y>240</y>
+       <width>81</width>
+       <height>27</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Load...</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_queue_name">
+     <property name="geometry">
+      <rect>
+       <x>80</x>
+       <y>10</y>
+       <width>201</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>-</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="button_remove">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>270</x>
+       <y>130</y>
+       <width>21</width>
+       <height>27</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="toolTip">
+      <string>Remove selected animation</string>
+     </property>
+     <property name="text">
+      <string>-</string>
+     </property>
+    </widget>
+    <widget class="QToolButton" name="button_up">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>270</x>
+       <y>30</y>
+       <width>21</width>
+       <height>24</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Move animation up</string>
+     </property>
+     <property name="text">
+      <string>...</string>
+     </property>
+     <property name="arrowType">
+      <enum>Qt::UpArrow</enum>
+     </property>
+    </widget>
+    <widget class="QToolButton" name="button_down">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>270</x>
+       <y>60</y>
+       <width>21</width>
+       <height>24</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Move animation down</string>
+     </property>
+     <property name="text">
+      <string>...</string>
+     </property>
+     <property name="arrowType">
+      <enum>Qt::DownArrow</enum>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>10</y>
+       <width>111</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Animations list:</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="Line" name="line_2">
+    <property name="geometry">
+     <rect>
+      <x>310</x>
+      <y>10</y>
+      <width>20</width>
+      <height>261</height>
+     </rect>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Vertical</enum>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>605</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="menu_new_list"/>
+    <addaction name="separator"/>
+    <addaction name="menu_load_list"/>
+    <addaction name="menu_save_list"/>
+    <addaction name="separator"/>
+    <addaction name="menu_quit"/>
+   </widget>
+   <widget class="QMenu" name="menuAnimation">
+    <property name="title">
+     <string>Animation</string>
+    </property>
+    <addaction name="menu_animation_new"/>
+    <addaction name="menu_animation_edit"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuAnimation"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionEdit">
+   <property name="text">
+    <string>Edit</string>
+   </property>
+  </action>
+  <action name="actionLoad_from_file">
+   <property name="text">
+    <string>Load from file...</string>
+   </property>
+  </action>
+  <action name="actionSave_file">
+   <property name="text">
+    <string>Export to file</string>
+   </property>
+  </action>
+  <action name="menu_load_list">
+   <property name="text">
+    <string>Load list...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="menu_new_list">
+   <property name="text">
+    <string>New list</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="menu_save_list">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Save list</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="menu_animation_new">
+   <property name="text">
+    <string>New...</string>
+   </property>
+  </action>
+  <action name="menu_animation_edit">
+   <property name="text">
+    <string>Edit</string>
+   </property>
+  </action>
+  <action name="menu_quit">
+   <property name="text">
+    <string>Quit</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
