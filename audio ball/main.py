@@ -38,6 +38,13 @@ clock = pygame.time.Clock()
 #plots wav of left channel
 rate,data = wavfile.read('sampletone.wav')
 
+#Draw a circle
+    #   unfortunately if you want antialiasing support is only available for
+    #   the outline of a circle, so we must draw the filled circle beneath the outlined
+    #   circle.
+def circle(x,y,r,color):
+		pygame.gfxdraw.filled_circle(screen,x,y,r,color)
+		pygame.gfxdraw.aacircle(screen,x,y,r,color)
 
 while not done:
  
@@ -52,20 +59,14 @@ while not done:
         if event.type == pygame.QUIT: # If user clicked close
             done=True # Flag that we are done so we exit this loop
  
-    # All drawing code happens after the for loop and but
-    # inside the main while done==False loop.
      
     # Clear the screen and set the screen background
     screen.fill(WHITE)
  
-    #Draw a circle
-    #   unfortunately if you want antialiasing support is only available for
-    #   the outline of a circle, so we must draw the filled circle beneath the outlined
-    #   circle.
-    pygame.gfxdraw.filled_circle(screen,(width/2),yPos,40,RED)
-    pygame.gfxdraw.aacircle(screen,(width/2),yPos,40,RED)
-    # Go ahead and update the screen with what we've drawn.
-    # This MUST happen after all the other drawing commands.
+    circle((width/2),yPos,40,RED)
+ 
+
+    # Updates screen: this MUST happen after all the other drawing commands.
     pygame.display.flip()
  
 # Be IDLE friendly
