@@ -34,7 +34,7 @@ class ViaPointsParameter(IInteractiveParameter):
 
         self.setVariable("start_x", 0.0)
         self.setVariable("stop_x", 0.0)
-        self.setVariable("via_points_moved", 0.0)
+        self.setVariable("via_  points_moved", 0.0)
         self.setVariable("threshold", 0.01)
 
 
@@ -86,6 +86,8 @@ class ViaPointsParameter(IInteractiveParameter):
     #
     #     return positions
 
+    #gives you a new signal based off all the previous parameter's outputs
+    #data: numpy array
     def applyParameter(self, data):
 
         start = int(self.getVariable('start_x'))
@@ -109,8 +111,15 @@ class ViaPointsParameter(IInteractiveParameter):
         p.canvas.draw()
         p.show()
 
+
+
+#window
 class InteractivePlot(QtGui.QDialog):
 
+    #parameter
+    #dataInput
+    #dataNow
+    #dataAudio
     def __init__(self, parameter, dataInput, dataNow, dataAudio, parent=None):
 
         super(InteractivePlot, self).__init__(parent)
@@ -223,8 +232,9 @@ class InteractivePlot(QtGui.QDialog):
         data = np.vstack(self.datanow)
         data = data[indmin:indmax, :]
 
+        #min_jerk_spline(Data, float threshold, ?,?) <==from matlab
+        #note: threshold may be a var self.parameter.getVariable('threshold'...)
         Xp, Xpd, Xpdd, Xpddd, vpts = self.parameter.vp.min_jerk_spline(data, 0.001, 1, 0)
-
 
 
         Xp_final = np.zeros(self.datanow.size)

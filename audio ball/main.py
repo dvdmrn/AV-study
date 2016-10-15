@@ -1,4 +1,3 @@
-
 import pygame
 from pygame import gfxdraw
 from math import pi
@@ -43,8 +42,8 @@ rate,data = wavfile.read('sampletone.wav')
     #   the outline of a circle, so we must draw the filled circle beneath the outlined
     #   circle.
 def circle(x,y,r,color):
-		pygame.gfxdraw.filled_circle(screen,x,y,r,color)
-		pygame.gfxdraw.aacircle(screen,x,y,r,color)
+        pygame.gfxdraw.filled_circle(screen,x,y,r,color)
+        pygame.gfxdraw.aacircle(screen,x,y,r,color)
 
 while not done:
  
@@ -71,4 +70,3 @@ while not done:
  
 # Be IDLE friendly
 pygame.quit()
-

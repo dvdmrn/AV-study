@@ -644,7 +644,7 @@ class AnimationDialog(QDialog, Ui_AnimationDialog):
         self.dialog_dataselection = DataSelectionDialog()
         
         self.folder_path = os.path.dirname(os.path.realpath(__file__))
-        
+
         self.connectButtons()
 
     def closeEvent(self, event):
@@ -715,9 +715,10 @@ class AnimationDialog(QDialog, Ui_AnimationDialog):
 
         hdf = tables.openFile(path, 'w')
         array = hdf.createArray("/", "animation", self.animation.signal.getAnimationData().tolist())
+        #todo: make an array, time vector. self.animation.signal.getTimeVectorStuffSomewhere()
         hdf.close()
         
-        
+    #!!!
     def exportAnimation(self):
 
         folder_path = self.folder_path + "/data/outputs/"
