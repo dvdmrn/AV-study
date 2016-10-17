@@ -1,0 +1,433 @@
+# -*- coding: utf-8 -*-
+
+from tables import *
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+import time
+import sys
+import math
+import threading
+import ConfigParser
+
+from animation import *
+from window import *
+from parameters import *
+from signals import *
+from wavsignal import *
+from hdfsignal import *
+from lpf import *
+
+from orderedlist import *
+
+from enum import *
+
+ANIMATION_TYPE_NONE = 0
+ANIMATION_TYPE_WAV_FILE = 1
+ANIMATION_TYPE_HDF_FILE = 2
+
+DEFAULT_FILTER_FREQUENCY_HZ = 20
+    
+MainAnimationErrors = enum('FILE_EMPTY', 'FILE_NOT_FOUND', 'INVALID_EXTENSION', 'INVALID_FORMAT', 'INVALID_PARAMETER', 'NOT_LOADED', 'INVALID_TYPE')
+
+class MainAnimationException(Exception):
+    def __init__(self, code=0, message=""):
+        self.args = (code, message)
+
+class MainAnimationItem(IsDescription):
+    id = Int32Col()
+    path = StringCol(255)
+    order = Int32Col()
+
+class VariablesItem(IsDescription):
+    name = StringCol(255)
+    value = Float32Col()
+    parameter = Int32Col()
+        
+class MainAnimation(IndexedOrderedList):
+
+    def __init__(self):
+        self.__parameters_path = os.path.dirname(os.path.realpath(__file__)) + "/data/parameters/"
+        self.__animations_path = os.path.dirname(os.path.realpath(__file__)) + "/data/animations/"
+        self.__signals_path = os.path.dirname(os.path.realpath(__file__)) + "/data/signals/"
+        self.__wav_path = os.path.dirname(os.path.realpath(__file__)) + "/data/wav/"
+
+        self.__resetVars()
+
+    def __resetVars(self):
+
+        self.__loaded = False
+        
+        self.configs = ConfigParser.ConfigParser()
+        self.__config_file = ""
+        
+        self.animationObject = Animation()
+        self.animationObject.setQueueName("/test_queue2")
+        self.signal = HDFSignal()
+        self.wavsignal = WavSignal()
+
+        self.clearData()
+        
+        
+    def clearData(self):
+
+        self.__name = ""
+        self.__wav_file = ""
+        self.__signal_file = ""
+        self.__hdf_branch = "/animation"
+        self.animationObject.setAnimationData(np.array([]))
+        self.signal.clearData()
+
+        self.__animationType = ANIMATION_TYPE_HDF_FILE
+
+    def __checkLoaded(self):
+        
+        if (not self.__loaded): raise MainAnimationException(MainAnimationErrors.NOT_LOADED)
+
+    def isLoaded(self):
+
+        return self.__loaded
+
+    def isRunning(self):
+
+        return self.animationObject.isRunning()
+
+    def __checkFile(self, file):
+        
+        if (file == ""):
+            raise MainAnimationException(MainAnimationErrors.FILE_EMPTY)
+        
+        if (os.path.isfile(self.__animations_path + str(file))):
+            return True
+            
+        return False
+    
+    def __checkWAVFile(self, filepath):
+
+        full_path = self.__wav_path + filepath
+        
+        if (not os.path.isfile(full_path)):
+            raise MainAnimationException(MainAnimationErrors.FILE_NOT_FOUND, "File not found!")
+
+        name, extension = os.path.splitext(full_path)
+
+        if (extension != ".wav"):
+            raise MainAnimationException(MainAnimationErrors.INVALID_EXTENSION, "File extension must be .wav!")
+
+        return True
+
+    def __checkHDFFile(self, filepath):
+
+        full_path = self.__signals_path + filepath
+        
+        if (not os.path.isfile(full_path)):
+            raise MainAnimationException(MainAnimationErrors.FILE_NOT_FOUND, "File not found!")
+
+        name, extension = os.path.splitext(full_path)
+
+        if (extension != ".hdf"):
+            raise MainAnimationException(MainAnimationErrors.INVALID_EXTENSION, "File extension must be .hdf!")
+
+        return True
+        
+    def getAnimationType(self):
+
+        return self.__animationType
+
+    def getWAVFile(self):
+
+        return self.__wav_file
+
+    def getHDFFile(self):
+
+        return self.__signal_file
+
+    def getFile(self):
+
+        return self.__config_file
+
+    def getWAVSignal(self):
+
+        return self.wavsignal
+
+    def getAnimationBranch(self):
+
+        return self.__hdf_branch
+        
+    def setAnimationType(self, animationType):
+
+        self.__animationType = animationType
+        
+    def setWAVFile(self, wavfile):
+
+        self.__checkWAVFile(wavfile)
+        self.__wav_file = wavfile
+        
+    def setHDFFile(self, hdffile):
+
+        self.__checkHDFFile(hdffile)
+        self.__signal_file = hdffile
+
+    def setFile(self, configfile):
+        
+        self.__config_file = configfile
+        
+    def setAnimationBranch(self, branch):
+
+        self.__hdf_branch = branch
+
+    def getName(self):
+
+        return self.__name
+    
+    def setName(self, name):
+
+        self.__name = name
+        
+    def loadWAVFile(self):
+
+        self.wavsignal = WavSignal()
+        self.wavsignal.setFile(self.__wav_path + self.__wav_file)
+        self.wavsignal.loadFile()
+        
+    def loadHDFFile(self):
+
+        self.signal = HDFSignal()
+        self.signal.setFile(self.__signals_path + self.__signal_file)
+        #self.signal.loadFile()
+        
+    def initializeAnimation(self):
+        """
+        Checks which animation type was selected and generates a signal object with
+        the according type
+        """
+        
+        if (self.__wav_file != ""):
+            self.loadWAVFile()
+        else:
+            raise MainAnimationException(MainAnimationErrors.FILE_EMPTY)
+
+        if (self.__animationType == ANIMATION_TYPE_WAV_FILE):
+            self.signal = self.wavsignal
+        elif (self.__animationType == ANIMATION_TYPE_HDF_FILE):
+            if (self.__signal_file != ""):
+                self.loadHDFFile()
+            else:
+                raise MainAnimationException(MainAnimationErrors.FILE_EMPTY)
+        else:
+            raise MainAnimationException(MainAnimationErrors.INVALID_TYPE)
+
+    def createList(self):
+
+        self.clearData()
+        self._new()
+        self.__loaded = True
+
+    def addParameter(self, parameterObj):
+
+        self.__checkLoaded()
+        self._add(IParameter, parameterObj)
+
+    def removeParameter(self, parameterObj):
+
+        self.__checkLoaded()
+        self._remove(IParameter, parameterObj)
+
+    def removeParameterByOrder(self, order):
+
+        self.__checkLoaded()
+        self._remove_order(IParameter, order)
+
+    def getParameters(self):
+
+        return self._list
+
+    def _move(self, order, down):
+
+        self.__checkLoaded()
+        OrderedList._move(self, order, down)
+
+    def __setParametersHiddenVariables(self):
+
+        for parameter in self.getOrderedList():
+            parameter.setHiddenVariable('ANIMATION_TYPE', self.__animationType)
+            
+            #if (type(self.signal) is WavSignal):                
+            parameter.setHiddenVariable('AUDIO_FRAME_RATE', self.wavsignal.getFileRate())
+            parameter.setHiddenVariable('AUDIO_FRAME_COUNT', self.wavsignal.getFrameCount())
+            parameter.setHiddenVariable('AUDIO_FRAME_SIZE', self.wavsignal.getFrameSize())
+            parameter.setHiddenVariable('AUDIO_TOTAL_SECONDS', self.wavsignal.getTotalSeconds())
+            if (type(self.signal) is HDFSignal):
+                parameter.setHiddenVariable('SIGNAL_RATE', self.signal.getFPS())
+                parameter.setHiddenVariable('SIGNAL_SIZE', self.signal.getData().size)
+            else:
+                parameter.setHiddenVariable('SIGNAL_RATE', self.wavsignal.getFileRate())
+                parameter.setHiddenVariable('SIGNAL_SIZE', self.wavsignal.getData().size)
+
+                    
+    def loadAnimation(self, stopParameter=None):
+        """
+        Uses signal object to generate the animation. The 'initializeAnimation()' function must be called
+        first
+        """
+        
+        fps = DEFAULT_FRAME_RATE
+
+        self.signal.clearParameters()
+        
+        for parameter in self.getOrderedList():
+            if (isinstance(stopParameter, IParameter)):
+                if (stopParameter == parameter):
+                    break
+                
+            self.signal.addParameter(parameter)
+            
+        if (type(self.signal) is Signal): return
+
+        if (type(self.signal) is WavSignal):
+
+            self.__setParametersHiddenVariables()
+            self.signal.generateAnimation()
+            
+        elif (type(self.signal) is HDFSignal):
+
+            self.signal.loadFile()
+            
+            self.signal.setAnimationBranch(self.__hdf_branch)
+            self.signal.loadData()
+
+            self.__setParametersHiddenVariables()
+            self.signal.generateAnimation()
+
+            fps = self.signal.getFPS()
+
+
+        self.animationObject.setAnimationData(self.signal.getAnimationData())
+        self.animationObject.setFPS(fps)
+        self.animationObject.setAudioFile(self.__wav_path + self.__wav_file)
+        
+
+    def setAnimationActions(self, onAnimationStart, onAnimationExecution, onAnimationFinish):
+        """
+        Defines the functions that will be called when the animation starts.
+        They are triggered before, during and after the execution of the animation
+        """
+        
+        self.__onAnimationStart = onAnimationStart
+        self.__onAnimationExecution = onAnimationExecution
+        self.__onAnimationFinish = onAnimationFinish
+        
+    def startAnimation(self):
+        """
+        Calls the startAnimation() function from the internal animation object.
+        """
+        
+        self.animationObject.startAnimation(self.__onAnimationStart, self.__onAnimationExecution, self.__onAnimationFinish)
+
+
+    def stopAnimation(self):
+
+        self.animationObject.stopAnimation()
+        
+    def animationAction(self):
+        """
+        Plays an audio file when the animation is being displayed on the other software
+        """
+        
+        self.animationObject.setAudioFile(self.__wav_path + self.__wav_file)
+        self.animationObject.setAudioData(self.wavsignal.getAudioData())
+        self.animationObject.setAudioRate(self.wavsignal.getFileRate())
+
+        self.animationObject.playAudio2()
+
+    def getParameterFromFile(self, path):
+
+        module_path = 'data.parameters.' + path
+        __import__(module_path)
+        module = sys.modules[module_path]
+
+        parameter = module.loadParameter()
+        parameter.setFile(path)
+
+        return parameter
+
+    def loadFile(self):
+
+        self.clearData()
+
+        if (self.__checkFile(self.__config_file)):
+            hdf = tables.openFile(self.__animations_path + self.__config_file, 'r')
+            if (hdf.__contains__("/parameters/items")):
+
+                self._new()
+
+                try:
+                    self.__wav_file = hdf.root._v_attrs.wavfile
+                    self.__signal_file = hdf.root._v_attrs.signalfile
+                    self.__name = hdf.root._v_attrs.name
+                    self.__animationType = hdf.root._v_attrs.signaltype
+                    self.__hdf_branch = hdf.root._v_attrs.branch
+                except:
+                    pass
+                
+                self.__loaded = True
+
+                for item in hdf.getNode("/parameters/items"):
+
+                    parameter = self.getParameterFromFile(item['path'])
+                    parameter.setFile(item['path'])
+
+                    for item_variable in hdf.getNode("/parameters/variables").where("parameter == " + str(item['id'])):
+
+                        parameter.setVariable(item_variable['name'], item_variable['value'])
+                                              
+                    self._append(parameter, item['order'], item['id'])
+
+                hdf.close()
+            else:
+                hdf.close()
+                raise MainAnimationException(MainAnimationErrors.INVALID_FORMAT)
+        else:
+            raise MainAnimationException(MainAnimationErrors.FILE_NOT_FOUND)
+
+    def saveFile(self):
+
+        self.__checkLoaded()
+
+        if (self.__config_file == ""):
+            raise MainAnimationException(MainAnimationErrors.FILE_EMPTY)
+
+        hdf = tables.openFile(self.__animations_path + self.__config_file, 'w')
+        group = hdf.createGroup("/", "parameters")
+        table = hdf.createTable(group, "items", MainAnimationItem, "Stores the path for all the parameters that will be applied to the signal")
+        table_variables = hdf.createTable(group, "variables", VariablesItem, "Stores the variables for the parameters")
+        
+        item = table.row
+        attrs = hdf.root._v_attrs
+
+        attrs.wavfile = self.__wav_file
+        attrs.signalfile = self.__signal_file
+        attrs.name = self.__name
+        attrs.signaltype = self.__animationType
+        attrs.branch = self.__hdf_branch
+        
+        for obj, order, id in zip(self._list, self._order, self._id_list):
+            
+            item['id'] = int(id)
+            item['path'] = str(obj.getFile())
+            item['order'] = int(order)
+
+            item_variable = table_variables.row
+            
+            for index in obj.getVariables():
+                item_variable['name'] = index
+                item_variable['value'] = float(obj.getVariable(index))
+                item_variable['parameter'] = id
+
+                item_variable.append()
+                
+            item.append()
+
+        table.flush()
+        hdf.close()

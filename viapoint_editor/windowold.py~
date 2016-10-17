@@ -1,0 +1,345 @@
+# -*- coding: utf-8 -*-
+
+import os
+import sys
+import glob
+import ntpath
+
+from mainwindow import *
+from mainwindowold import *
+from parametersdialog import *
+from AnimationChoice import *
+from DatasetDialog import *
+
+from animationlist import *
+
+from chooselist import *
+from animationselectiondialog import *
+
+from PyQt4 import *
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
+
+def windowStartOld():
+    
+    app = QtGui.QApplication(sys.argv)    
+    window = WindowMain()
+    
+    window.show()
+
+    
+    return (app, window)
+
+def windowStart():
+    
+    app = QtGui.QApplication(sys.argv)    
+    window = MainWindow()
+    
+    window.show()
+
+    
+    return (app, window)
+
+class AnimationChoice(QDialog, Ui_AnimationDialog):
+    def __init__(self):
+        QDialog.__init__(self)
+
+        self.setupUi(self)
+
+class ParametersDialog(QDialog, Ui_Dialog):
+    def __init__(self):
+        QDialog.__init__(self)
+
+        self.setupUi(self)
+
+class DatasetDialog(QDialog, Ui_DatasetDialog):
+    def __init__(self):
+        QDialog.__init__(self)
+
+        self.setupUi(self)
+    
+class WindowMain(QMainWindow, Ui_MainWindowOld):
+    def __init__(self):
+        QMainWindow.__init__(self)
+
+        self.form_parameters = ParametersDialog()
+        self.form_animation_choice = AnimationChoice()
+        self.form_dataset = DatasetDialog()
+        
+        self.setupUi(self)
+
+    def openParametersDialog(self, arg2):
+        self.form_parameters.show()
+
+    def openAnimationChoiceDialog(self):
+        self.form_animation_choice.exec_()
+
+    def openDatasetDialog(self):
+        self.form_dataset.exec_()
+
+
+
+### NEW ####
+
+
+class MainWindow(QMainWindow, Ui_MainWindow):
+    
+    def __init__(self):
+        
+        QMainWindow.__init__(self)
+
+        self.dialog_chooselist = ChooseListDialog()
+        self.dialog_animationselection = AnimationSelectionDialog()
+
+        self.folder_path = os.path.dirname(os.path.realpath(__file__))
+        self.animationList = AnimationList()
+        
+        self.setupUi(self)
+
+        self.updateListToolbarStatus()
+        self.connectButtons()
+
+        
+    def keyPressEvent(self, event):
+        
+        if (event.type() == QKeyEvent.KeyPress):
+            if (event.key() == QKeySequence.Save):
+                print "Save"
+
+                
+    def updateAnimationsList(self):
+
+        selected = self.list_list.currentIndex()
+    
+        self.list_list.clear()
+
+        if (self.animationList.isLoaded()):
+            for name in self.animationList.getOrderedNames():
+                self.list_list.addItem(name)     
+
+        self.list_list.setCurrentIndex(selected)
+
+        
+    def updateListToolbarStatus(self):
+
+        item = self.list_list.currentItem()
+    
+        if (self.animationList.isLoaded()):
+            self.button_add.setEnabled(True)
+        else:
+            self.button_add.setEnabled(False)
+        
+        if (item is None):
+            self.button_up.setEnabled(False)
+            self.button_down.setEnabled(False)
+            self.button_remove.setEnabled(False)
+
+            return
+        else:
+            self.button_up.setEnabled(True)
+            self.button_down.setEnabled(True)
+            self.button_remove.setEnabled(True)
+
+        index = self.list_list.currentRow()
+    
+        if (index == self.list_list.count() - 1):
+            self.button_down.setEnabled(False)
+
+        if (index == 0):
+            self.button_up.setEnabled(False)
+
+    
+    def saveAnimationListCall(self):
+        
+        self.saveAnimationList()
+
+        
+    def saveAnimationList(self, path=""):
+
+        try:
+            self.animationList.saveFile(path)
+            self.updateListControls()
+        except AnimationListException as e:
+            code, message = e.args
+
+            if (code == AnimationListErrors.FILE_EMPTY):
+                path = self.dialog_chooselist.getSavePath()
+                if (path != ""):
+                    self.saveAnimationList(path)
+            
+            elif (code == AnimationListErrors.NOT_LOADED):
+                self.label_queue_name.setText("-")
+                self.animationList = AnimationList()
+                self.updateAnimationsList()
+                self.updateListToolbarStatus()
+
+                
+    def loadAnimationList(self):
+    
+        self.animationList = AnimationList()
+
+        try:
+            self.animationList.loadFile(self.dialog_chooselist.getSavePath(True))
+        except AnimationListException as e:
+            return
+    
+        self.updateListControls()
+
+        
+    def updateListControls(self):
+    
+        if (self.animationList.isLoaded()):
+            text = self.animationList.getFile()
+            if (text == ""):
+                text = "* New List *"
+            
+            self.label_queue_name.setText(text)
+            self.button_save_list.setEnabled(True)
+        
+            self.updateAnimationsList()
+            self.updateListToolbarStatus()
+        else:
+            self.button_save_list.setEnabled(False)
+            self.label_queue_name.setText("-")
+
+            
+    def moveListItem(self, down):
+
+        item = self.list_list.currentItem()
+
+        if (not(item is None)):
+            index = self.list_list.currentRow()
+            if (down):
+                self.animationList.moveDown(index)
+            else:
+                self.animationList.moveUp(index)
+
+            self.updateAnimationsList()
+            self.updateListToolbarStatus()
+
+            
+    def moveListItemUp(self):
+        
+        next = max(0, self.list_list.currentRow() - 1)
+        self.moveListItem(False)
+        self.list_list.setCurrentRow(next)
+
+        
+    def moveListItemDown(self):
+        
+        next = min(self.list_list.count() - 1, self.list_list.currentRow() + 1)
+        self.moveListItem(True)
+        self.list_list.setCurrentRow(next)
+
+        
+    def newAnimationList(self):
+
+        self.animationList = AnimationList()
+    
+        self.animationList.createList()
+        self.updateListControls()
+
+
+    def addAnimationToList(self):
+    
+        animation_file = self.dialog_animationselection.getAnimationFile()
+    
+        if (animation_file != ""):
+            animation = MainAnimation()
+            animation.setConfigFile(animation_file)
+            animation.loadConfigs()
+
+            self.animationList.addAnimation(animation)
+            
+            self.updateListControls()
+
+
+    def connectButtons(self):
+
+        self.button_load_list.clicked.connect(self.loadAnimationList)
+        self.button_save_list.clicked.connect(self.saveAnimationListCall)
+        self.button_up.clicked.connect(self.moveListItemUp)
+        self.button_down.clicked.connect(self.moveListItemDown)
+        self.button_add.clicked.connect(self.addAnimationToList)
+
+        self.button_new_list.clicked.connect(self.newAnimationList)
+    
+        self.list_list.itemSelectionChanged.connect(self.updateListToolbarStatus)
+    
+            
+class ChooseListDialog(QDialog, Ui_ChooseListDialog):
+
+    def __init__(self):
+
+        QDialog.__init__(self)
+        self.folder_path = os.path.dirname(os.path.realpath(__file__))
+        
+        self.setupUi(self)
+
+    def getSavePath(self, loading=False, text=""):
+
+        folder_path = self.folder_path + "/data/lists/"
+        
+        self.text_path.setText(text)
+        self.text_path.selectAll()
+        self.text_path.setFocus()
+        
+        self.exec_()
+
+        if (self.result() == 1):
+            path = str(self.text_path.text()) + ".hdf"
+
+            if (loading):
+                if (os.path.isfile(folder_path + path)):
+                    return path
+                else:
+                    return self.getSavePath(loading, self.text_path.text())
+
+            else:
+                if (os.path.isfile(folder_path + path)):
+                    question = QMessageBox.Question("File already exist", "This file already exists. Do you really want to continue this operation? All the information stored in the file will be lost.")
+                    if (question == QMessageBox.Yes):
+                        return path
+                    else:
+                        return self.getSavePath(loading, self.text_path.text())
+                else:
+                    return path
+        else:
+            return ""
+
+class AnimationSelectionDialog(QDialog, Ui_AnimationSelectionDialog):
+
+    def __init__(self):
+
+        QDialog.__init__(self)
+        self.folder_path = os.path.dirname(os.path.realpath(__file__))
+
+        self.setupUi(self)
+
+    def loadList(self):
+        
+        folder_mask = self.folder_path + "/data/animations/*.ini"
+        return [ ntpath.basename(name) for name in glob.glob(folder_mask) ]
+        
+    def updateList(self):
+
+        self.list_animations.clear()
+        print self.loadList()
+        
+        for item in self.loadList():
+            self.list_animations.addItem(item)
+
+    def getAnimationFile(self):
+
+        self.updateList()
+        self.exec_()
+
+        if (self.result() == 1):
+            item = self.list_animations.currentItem()
+
+            if (not(item is None)):
+                return self.folder_path + "/data/animations/" + str(item.text())
+            else:
+                return ""
+        else:
+            return ""

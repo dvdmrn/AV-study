@@ -1,7 +1,0 @@
-import time
-import sys
-
-import sysv_ipc
-
-
-print "oi"

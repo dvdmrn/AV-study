@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/mqueue.iml" filepath="$PROJECT_DIR$/.idea/mqueue.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/viapoint editor.iml" filepath="$PROJECT_DIR$/.idea/viapoint editor.iml" />
     </modules>
   </component>
 </project>

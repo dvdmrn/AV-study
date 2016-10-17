@@ -1,8 +1,0 @@
-[General]
-filter_frequency_hz = 17
-animation_type = 1
-audio_file = /home/eduardo/python/projects/mqueue/haber.wav
-hdf_file = 
-hdf_branch = /animation
-name = 
-

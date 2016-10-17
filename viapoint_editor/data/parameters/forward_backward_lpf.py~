@@ -1,0 +1,45 @@
+# -*- coding: utf-8 -*-
+
+from parameters import *
+
+from scipy.signal import lfilter, filtfilt, butter
+
+import numpy as np
+
+
+LPF_TYPE = 1008
+DEFAULT_LPF_FILTER_FREQUENCY_HZ = 20
+DEFAULT_LPF_FILTER_ORDER = 5
+
+class ForwardBackwardLPF(IParameter):
+
+    def __init__(self):
+
+        IParameter.__init__(self, "Forward-Backward Butterworth LPF", LPF_TYPE)
+        self.setVariable("FREQUENCY", DEFAULT_LPF_FILTER_FREQUENCY_HZ)
+        self.setVariable("ORDER", DEFAULT_LPF_FILTER_ORDER)
+
+
+    def butter_lowpass(self, lowcut, fs, order=5):
+        nyq = 0.5 * fs
+        low = lowcut / nyq
+        return butter(order, low, btype='low')
+
+
+    def forward_backward_butter_filter(self, data, lowcut, fs, order=5):
+        b, a = self.butter_lowpass(lowcut, fs, order=order)
+        return filtfilt(b, a, data)
+
+    def applyParameter(self, data):
+        
+        rate = self.getHiddenVariable('AUDIO_FRAME_RATE')
+        print rate, self.getVariable("FREQUENCY")
+
+        filtered_data = self.forward_backward_butter_filter(data, self.getVariable("FREQUENCY"), rate, int(self.getVariable("ORDER")))
+        
+        return filtered_data
+
+
+def loadParameter():
+
+    return ForwardBackwardLPF()

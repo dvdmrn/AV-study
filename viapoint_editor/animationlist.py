@@ -1,0 +1,233 @@
+# -*- coding: utf-8 -*-
+
+from tables import *
+import numpy as np
+
+import sys
+
+from orderedlist import *
+from mainanimationnew import *
+
+from enum import *
+
+AnimationListErrors = enum('FILE_EMPTY', 'FILE_NOT_FOUND', 'INVALID_EXTENSION', 'INVALID_FORMAT', 'INVALID_PARAMETER', 'NOT_LOADED', 'ANIMATION_NOT_FOUND')
+
+class AnimationListException(Exception):
+    def __init__(self, code=0, message=""):
+        self.args = (code, message)
+
+class AnimationItem(IsDescription):
+    path = StringCol(255)
+    order = Int32Col()
+
+class AnimationList(OrderedList):
+
+    def __init__(self):
+
+        OrderedList.__init__(self)
+        
+        self.__folder_path = os.path.dirname(os.path.realpath(__file__)) + "/data/lists/"
+        self.__animations_path = os.path.dirname(os.path.realpath(__file__)) + "/data/animations/"
+        self.playlist = np.array([])
+        self._file = ""
+        self.__loaded = False
+
+
+    def isLoaded(self):
+
+        return self.__loaded
+    
+    def isRunning(self):
+
+        for animation in self.getOrderedList():
+            if (animation.isRunning()):
+                return True
+
+        return False
+
+    def __checkFile(self, file):
+        if (file == ""):
+            raise AnimationListException(AnimationListErrors.FILE_EMPTY)
+        
+        if (os.path.isfile(self.__folder_path + file)):
+            return True
+            
+        return False
+
+    def __checkLoaded(self):
+        
+        if (not self.__loaded): raise AnimationListException(AnimationListErrors.NOT_LOADED)
+
+    def addAnimation(self, animationObj):
+        
+        self.__checkLoaded()
+        self._add(MainAnimation, animationObj)
+
+    def removeAnimation(self, animationObj):
+
+        self.__checkLoaded()
+        self._remove(MainAnimation, animationObj)
+
+    def removeAnimationByOrder(self, order):
+
+        self.__checkLoaded()
+        self._remove_order(MainAnimation, order)
+        
+    def _move(self, order, down):
+        
+        self.__checkLoaded()
+        OrderedList._move(self, order, down)
+        
+    def getAnimations(self):
+        
+        self.__checkLoaded()
+        return self._list
+
+    def getOrderedAnimations(self):
+        
+        self.__checkLoaded()
+        return self.getOrderedList()
+    
+    def getFile(self):
+        
+        self.__checkLoaded()
+        return self._file
+    
+    def createList(self):
+        
+        self._new()
+        self.__loaded = True
+        self._file = ""
+
+    def __getNames(self, array):
+        
+        self.__checkLoaded()
+        names = np.array([])
+        
+        for obj in array:
+            names = np.append(names, obj.getName())
+
+        return names
+
+    def getNames(self):
+        
+        return self.__getNames(self._list)
+
+    def getOrderedNames(self):
+
+        return self.__getNames(self.getOrderedAnimations())
+
+    def onAnimationStart(self):
+
+        pass
+
+    def onAnimationExecution(self):
+
+        if (self.playlist.size > 0):
+            self.playlist[0].animationAction()
+
+    def onAnimationFinish(self):
+
+        if (self.playlist.size == 0): return
+        
+        if (self.playlist.size == 1):
+            self.playlist = np.array([])
+            
+        else:
+            self.playlist = np.delete(self.playlist, 0)
+            self.playlist[0].startAnimation()
+
+    def setAnimationsActions(self, onStart, onExecution, onFinish):
+
+        self.__checkLoaded()
+        
+        for animation in self.playlist:
+            animation.setAnimationActions(onStart, onExecution, onFinish)
+
+    def addAnimationToPlaylist(self, animation):
+
+        self.__checkLoaded()
+        
+        if (isinstance(animation, MainAnimation)):
+            
+            animation.initializeAnimation()
+            animation.loadAnimation()
+            
+            self.playlist = np.append(self.playlist, animation)
+
+    def createPlaylist(self):
+
+        self.__checkLoaded()
+        
+        for animation in self.getOrderedList():
+            self.addAnimationToPlaylist(animation)
+        
+    def clearPlaylist(self):
+
+        self.__checkLoaded()
+        
+        for animation in self.getOrderedList():
+            animation.stopAnimation()
+
+        self.playlist = np.array([])
+
+    def startPlaylist(self):
+
+        self.__checkLoaded()
+
+        if (self.playlist.size > 0):
+            if (not self.isRunning()):
+                self.playlist[0].startAnimation()
+        
+        
+    def loadFile(self, file):
+        
+        self.__loaded = False
+        
+        if (self.__checkFile(file)):
+            hdf = tables.openFile(self.__folder_path + file, 'r')
+            if (hdf.__contains__("/animations/items")):
+
+                self.createList()
+                self._file = file
+                
+                for item in hdf.getNode("/animations/items"):
+                    animation = MainAnimation()
+                    animation.setFile(item['path'])
+                    animation.loadFile()
+
+                    self._append(animation, item['order'])
+                    
+                hdf.close()
+            else:
+                hdf.close()
+                raise AnimationListException(AnimationListErrors.INVALID_FORMAT)
+        else:
+            raise AnimationListException(AnimationListErrors.FILE_NOT_FOUND)
+
+    def saveFile(self, file=""):
+        
+        self.__checkLoaded()
+        
+        if (file == ""): file = self._file
+        if (file == ""):
+            raise AnimationListException(AnimationListErrors.FILE_EMPTY)
+
+        self._file = file
+        
+        hdf = tables.openFile(self.__folder_path + self._file, 'w')
+        group = hdf.createGroup("/", "animations")
+        table = hdf.createTable(group, "items", AnimationItem, "Stores the path for all the animations in the queue")
+        
+        item = table.row
+
+        
+        for obj, order in zip(self._list, self._order):
+          
+            item['path'] = str(obj.getFile())
+            item['order'] = int(order)
+            
+            item.append()
+
+        table.flush()        
+        hdf.close()
