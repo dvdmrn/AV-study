@@ -27,3 +27,5 @@ You need the following packages to run the software. This section will show you 
         - `make install`
 - **pytables**: `Sudo apt-get install python-tables` (Need to use apt-get due to problems with pip as of 2017.01.30) 
 
+#### More detailed setup information
+...can be found over here: https://docs.google.com/document/d/1Ax7sCXPPS9O5m3p_vUgyfT0UCy6QWxxQchM2W7FMrCY/edit?usp=sharing
