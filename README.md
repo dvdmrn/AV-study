@@ -32,7 +32,7 @@ You need the following packages to run the software. This section will show you 
 - **pyaudio**: `sudo apt-get install python-pyaudio` OR...
 - **cython**: `sudo pip install cython`
 - **scikits.audiolab**: `sudo pip install scikits.audiolab`  
-- **gizeh**: 
+- **gizeh**:  
         - `sudo apt-get install python-dev python-pip ffmpeg libffi-dev`
         - `sudo pip install gizeh`
 
