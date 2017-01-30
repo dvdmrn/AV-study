@@ -29,8 +29,12 @@ You need the following packages to run the software. This section will show you 
 - **posix_ipc**:   
         - Download the tarball: https://pypi.python.org/pypi/posix_ipc  
         - Once extracted, navigate into the folder and type `python setup.py install`.
-- **pyaudio**: `sudo apt-get install python-pyaudio`
-
+- **pyaudio**: `sudo apt-get install python-pyaudio` OR...
+- **cython**: `sudo pip install cython`
+- **scikits.audiolab**: `sudo pip install scikits.audiolab`  
+- **gizeh**: 
+        - `sudo apt-get install python-dev python-pip ffmpeg libffi-dev`
+        - `sudo pip install gizeh`
 
 ### More detailed setup information
 ...can be found over here: https://docs.google.com/document/d/1Ax7sCXPPS9O5m3p_vUgyfT0UCy6QWxxQchM2W7FMrCY/edit?usp=sharing1
