@@ -25,6 +25,7 @@ You need the following packages to run the software. This section will show you 
         - Download PyQt at: https://riverbankcomputing.com/software/pyqt/download
         - `cd` in to downloaded folder with a makefile and in terminal run `make`.
         - `make install`
+- **PyQt4.phonon**: `sudo apt-get install Python-qt4.phonon`
 - **pytables**: `Sudo apt-get install python-tables` (Need to use apt-get due to problems with pip as of 2017.01.30) 
 - **posix_ipc**:   
         - Download the tarball: https://pypi.python.org/pypi/posix_ipc  
