@@ -18,8 +18,8 @@ from DatasetDialog import *
 from animationdialog import *
 
 import gizeh
-from moviepy.editor import VideoClip
-from moviepy.editor import AudioFileClip
+# from moviepy.editor import VideoClip
+# from moviepy.editor import AudioFileClip
 
 import numpy as np
 

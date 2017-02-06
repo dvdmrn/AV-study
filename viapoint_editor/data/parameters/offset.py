@@ -15,7 +15,6 @@ class Offset(IParameter):
         self.setVariable("OFFSET", DEFAULT_OFFSET)
 	
     def applyParameter(self, data):
-
         offset = data + self.getVariable("OFFSET")
         return offset
 
