@@ -106,6 +106,8 @@ HDFfilepath = hdf_dirs[trial]
 print('hdffilepath :', hdf_dirs[trial])
 
 # opens h5file
+# !!!
+HDFfilepath = os.path.join(hdf_dir, hdf_dirs[trialIndex])
 h5file = open_file(HDFfilepath, mode="r", title="Test file")
 table = h5file.root.animation
 # constructs array of frame vals
