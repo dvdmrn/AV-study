@@ -19,6 +19,7 @@ import time
 import random
 import collections
 import csv
+import tables
 
 import sys
 
@@ -49,11 +50,24 @@ print ("current dir:",current_dir)
 trial = 0
 trialIndex = 0
 
+numBlanksToAdd = 10
+
 # TODO works with HDF Dir
 hdf_dir = '../data/trials/hdfConditions/'
 #hdf_dirs = sorted(os.listdir( hdf_dir ))
+sorted_hdf_dirs = sorted(os.listdir( hdf_dir ))
+
+print('sorted hdf_dirs ', sorted_hdf_dirs)
+
+print('0 HDF', sorted_hdf_dirs[0])
+print('1 HDF' , sorted_hdf_dirs[1])
+print('2 HDF', sorted_hdf_dirs[2])
+print('\n')
+
+
 hdf_dirs = os.listdir( hdf_dir )
-print('hdf_dirs ', hdf_dir)
+print('hdf_dirs ', hdf_dirs)
+print('hdf_dir ', hdf_dir)
 
 print("Files in HDF")
 # This would print all the files and directories
@@ -73,8 +87,14 @@ wav_dir = '../data/trials/wavConditions/'
 #wav_dirs = sorted(os.listdir( wav_dir ))
 wav_dirs = os.listdir( wav_dir )
 print('wav_dirs ', wav_dirs)
-sortedList = wav_dirs.sort()
-print('sorted', sortedList)
+sorted_wav_dirs = sorted(os.listdir( wav_dir ))
+print('sorted_wav_dirs', sorted_wav_dirs)
+
+
+print('0 WAV' , sorted_wav_dirs[0])
+print('1 WAV' , sorted_wav_dirs[1])
+print('2 WAV', sorted_wav_dirs[2])
+print('\n')
 
 
 print("Files in wav")
@@ -89,10 +109,10 @@ print('\n')
 # Find the directory with the fewest amount of files to determine how many trials to run
 # assuming one file per trial
 shortest_list = 0
-if len(hdf_dirs) < len(wav_dirs):
-    shortest_list = len(hdf_dirs)
+if len(sorted_hdf_dirs) < len(sorted_wav_dirs):
+    shortest_list = len(sorted_hdf_dirs)
 else:
-    shortest_list = len(wav_dirs)
+    shortest_list = len(sorted_wav_dirs)
 print('fewest number of files:',shortest_list)
 
 # ----------------------------------------------------------------
@@ -103,13 +123,36 @@ class Animation(IsDescription):
     frame = Float64Col()
 
 
-HDFfilepath = hdf_dirs[trial]
-print('hdffilepath :', hdf_dirs[trial])
+HDFfilepath = sorted_hdf_dirs[trial]
+print('hdffilepath :', sorted_hdf_dirs[trial])
 
 # opens h5file
 # !!!
-HDFfilepath = os.path.join(hdf_dir, hdf_dirs[trialIndex])
-h5file = open_file(HDFfilepath, mode="r", title="Test file")
+HDFfilepath = os.path.join(hdf_dir, sorted_hdf_dirs[trialIndex])
+h5file = open_file(HDFfilepath, mode="r+", title="Trial file")
+
+
+# attempt at adding blank rows in existing HDF file
+'''
+class HDFContents(IsDescription):
+    numRows      = Int32Col()       # 32-bit integer
+    animValue    = Float32Col()    # float  (single-precision
+
+group = h5file.create_group("/", 'detector', 'Detector information')
+newRows = h5file.create_group(h5file.root, "rows", "frames")
+newTable = h5file.create_table(group, 'readout', HDFContents, "Offset HDF file")
+hdfContents = newTable.row
+# go to the next row (numRows) then add a 0 to offset the HDF animation
+for i in xrange(numBlanksToAdd):
+    hdfContents['numRows'] = i
+    hdfContents['animValue'] = 0
+    # Insert a new HDFContents row record
+    hdfContents.append()
+# maintain integrirty of file and free up memory reosources
+newTable.flush()
+newTable = h5file.root.detector.readout
+'''
+
 table = h5file.root.animation
 # constructs array of frame vals
 # !!! min max values can be found in here \/ below
@@ -256,26 +299,26 @@ def trialLoop():
             gameEnd()
 
         # HDFfilepath = hdf_dirs[0]
-        file = hdf_dirs[trialIndex]
-        print('file2 :', hdf_dirs[trialIndex])
+        file = sorted_hdf_dirs[trialIndex]
+        print('file2 :', sorted_hdf_dirs[trialIndex])
 
         #HDFfilepath = os.path.abspath(file)
         #print ('hdf_path2', os.path.abspath(file))
 
-        HDFfilepath = os.path.join(hdf_dir, hdf_dirs[trialIndex])
+        HDFfilepath = os.path.join(hdf_dir, sorted_hdf_dirs[trialIndex])
         print ('current hdf_path: ', HDFfilepath)
 
 
-        h5file = open_file(HDFfilepath, mode="r", title="Test file")
+        h5file = open_file(HDFfilepath, mode="r+", title="Test file")
         table = h5file.root.animation
 
         # wav file path
-        soundfile = wav_dirs[trialIndex]
+        soundfile = sorted_wav_dirs[trialIndex]
 
-        soundFilePath = os.path.join(wav_dir, wav_dirs[trialIndex])
+        soundFilePath = os.path.join(wav_dir, sorted_wav_dirs[trialIndex])
         print('\n')
         print('in trial', trial, 'sound path :', soundFilePath)
-        print('soundfile name :', wav_dirs[trialIndex])
+        print('soundfile name :', sorted_wav_dirs[trialIndex])
         #print(soundfile)
         print('\n')
 
@@ -432,8 +475,6 @@ def ball():
         if frameIndex == len(frames)-1:
             gameOver = True
             done = True
-
-
 
 
 
