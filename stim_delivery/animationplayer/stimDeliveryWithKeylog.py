@@ -20,6 +20,7 @@ import random
 import collections
 import csv
 import tables
+import string
 
 import sys
 
@@ -49,6 +50,7 @@ print ("current dir:",current_dir)
 
 trial = 0
 trialIndex = 0
+soundFilePath = ""
 
 numBlanksToAdd = 10
 
@@ -56,6 +58,7 @@ numBlanksToAdd = 10
 hdf_dir = '../data/trials/hdfConditions/'
 #hdf_dirs = sorted(os.listdir( hdf_dir ))
 sorted_hdf_dirs = sorted(os.listdir( hdf_dir ))
+
 
 print('sorted hdf_dirs ', sorted_hdf_dirs)
 
@@ -163,6 +166,7 @@ print("min", min(frames))
 
 # will be used to interate frames in main loop
 frameIndex = 0
+frameRate = 0
 
 # ----------------------------------------------------------------
 #      keylog setup
@@ -220,6 +224,9 @@ medfont = pygame.font.SysFont("comicsansms", 50)
 largefont = pygame.font.SysFont("comicsansms", 80)
 
 
+pid = raw_input("Please enter the participant id: ")
+print "PID is set as: ", pid
+
 def text_objects(text, color, size):
     if size == "small":
         textSurface = smallfont.render(text, True, color)
@@ -263,12 +270,13 @@ def game_intro():
                           BLACK,
                           -10)
 
-        message_to_screen("Press C to start or Q to quit.",
+        message_to_screen("Press C to start",
                           BLACK,
                           70)
 
         pygame.display.update()
-        clock.tick(FPS)
+        #clock.tick(FPS)
+        clock.tick(frameRate)
 
 def trialLoop():
     global trial
@@ -300,7 +308,7 @@ def trialLoop():
 
         # HDFfilepath = hdf_dirs[0]
         file = sorted_hdf_dirs[trialIndex]
-        print('file2 :', sorted_hdf_dirs[trialIndex])
+        print('hdf name :', sorted_hdf_dirs[trialIndex])
 
         #HDFfilepath = os.path.abspath(file)
         #print ('hdf_path2', os.path.abspath(file))
@@ -330,22 +338,47 @@ def trialLoop():
         frameIndex = 0
         ball()
 
+        start_ticks = pygame.time.get_ticks()  # starter tick
+
+        hasExported = False # by default, the csv file has not been exported
 
         while not gameExit:
 
             while gameOver == False:
+
+                numSecondsToWait = 10  #number of seconds to wait before going to the next trial
+                seconds = (pygame.time.get_ticks() - start_ticks) / (numSecondsToWait* 100)  # calculate how many seconds
+                countdownSeconds = numSecondsToWait-seconds
+                if seconds > numSecondsToWait:  # if more than numSecondsToWait seconds go to the next trial
+                    trialLoop()
+                    gameEnd()
+                if hasExported == False:  #This ensures the .csv file is only written once
+                    hasExported = True
+                    exportVals(keylogData)
+
+
+                countdownMessage = "Next trial is in  " + str(countdownSeconds) + " seconds."
+                #print("count down Message: ", countdownMessage)
+
+
                 screen.fill(WHITE)
                 message_to_screen(trialMessage,
                                   RED,
                                   y_displace=-40,
                                   size="large")
 
-                message_to_screen("Please take a break.",
+                message_to_screen(countdownMessage,
                                   BLACK,
                                   50,
                                   size="medium")
 
-                message_to_screen("Press C to start the next trial or Q to quit.  ",
+                '''message_to_screen("Please take a break.",
+                                  BLACK,
+                                  50,
+                                  size="medium")
+                '''
+
+                message_to_screen("Press C to start the next trial",
                                   BLACK,
                                   120)
 
@@ -353,6 +386,7 @@ def trialLoop():
 
 
                 for event in pygame.event.get():
+
                     if event.type == pygame.QUIT:
                         gameOver = False
                         gameExit = True
@@ -369,7 +403,8 @@ def trialLoop():
                         if event.key == pygame.K_e:
                             exportVals(keylogData)
 
-                clock.tick(FPS)
+                #clock.tick(FPS)
+                clock.tick(frameRate)
 
     #pygame.quit()
     #quit()
@@ -392,10 +427,12 @@ def inferFrameRate(frames, soundFilePath):
 
 
 def ball():
+    smoothY = 0
+    global frameRate
     print('balls frame rate', soundFilePath)
-    framerate = inferFrameRate(frames, soundFilePath)
+    frameRate = inferFrameRate(frames, soundFilePath)
 
-    print("did inferframerate work? ", framerate)
+    print("did inferframerate work? ", frameRate)
 
     # Load audio
     pygame.mixer.music.load(soundFilePath)
@@ -414,8 +451,8 @@ def ball():
         # This sets the framerate
         # Leave this out and we will use all CPU we can.
         global frameIndex
-
-        clock.tick_busy_loop(framerate - 2)
+        #clock.tick_busy_loop(frameRate )
+        clock.tick_busy_loop(frameRate - 2)
         pygame.display.set_caption("fps: " + str(clock.get_fps()))
 
         # interp does what MapRange is supposed to do
@@ -460,12 +497,14 @@ def ball():
                 if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT or event.key == pygame.K_SPACE:
                     pressVal = 0
 
-            clock.tick(FPS)
+            #clock.tick(FPS)
+            clock.tick(frameRate)
 
         # Clear the screen and set the screen background
         screen.fill(WHITE)
 
-        circle((width / 2), yPos, radius, ballColor)
+        smoothY = int(smoothY*0.5+yPos*0.5)
+        circle((width / 2), smoothY, radius, ballColor)
 
         frameIndex += 1
         # Updates screen: this MUST happen after all the other drawing commands.
@@ -479,12 +518,20 @@ def ball():
 
 
 def exportVals(klData):
-    with open('keylog_data.csv', 'w') as csvfile:
+
+    currentHdfName = sorted_hdf_dirs[trialIndex].split(".")[0]
+    currentHdfName = currentHdfName.split('_', 1)[-1]
+    print('currentHdfName', currentHdfName)
+
+    # Key Log Data, save in the participant_data folder
+    #with open('pid' + pid + '_trial' + str(trial) + '_' + currentHdfName + '.csv', 'w') as csvfile:
+    with open('../data/participant_data/' + 'pid' + pid + '_trial' + str(trial) + '_' + currentHdfName + '.csv', 'wb') as csvfile:
+
         fieldnames = ['time', 'keypress']
         writer = csv.writer(csvfile)
         # writer.writeheader()
         keylogData = klData.items()
-        print "writing keylog_data.csv"
+        print "writing " +  currentHdfName + ".csv"
         for e in keylogData:
             writer.writerow(e)
         print "finished writing file"
@@ -522,7 +569,8 @@ def gameEnd():
                           70)
 
         pygame.display.update()
-        clock.tick(FPS)
+        #clock.tick(FPS)
+        clock.tick(frameRate)
 
 
 game_intro()
