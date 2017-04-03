@@ -1,10 +1,3 @@
-# ----------------------------------------------------------------
-# Run this script by typing:
-#	python ballHDF.py <HDF_file_path> <sound_file_path>
-# Note: sounds must be a wav file!
-# ----------------------------------------------------------------
-
-
 import pygame
 from pygame import gfxdraw
 from pygame import mixer
@@ -26,15 +19,6 @@ import tables
 import sys
 
 from tables import *
-
-
-#HDFfilepath = sys.argv[1]
-
-# soundFilePath = sys.argv[2]
-
-# print('sound path')
-# print(soundFilePath)
-# sound path
 
 import glob, os
 import os.path
