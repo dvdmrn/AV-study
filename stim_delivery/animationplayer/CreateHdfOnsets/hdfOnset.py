@@ -97,9 +97,6 @@ print ('/n')
 #table = h5file.animation
 table = h5file.root.animation
 
-print("Table in hdf", table)
-
-
 # constructs array of frame vals
 frames = [x for x in table.iterrows()]
 totalframes = len(frames) + numOffsetBlanksToAdd
@@ -187,8 +184,6 @@ print('values to be copied ', val)
 # Write selected file's contents into empty hdf file (copy)
 dset1.write(mid1, fid1, val, h5py.h5t.NATIVE_DOUBLE)
 
-#print(file1)
-#file1 = np.reshape(file1, DIM1)
 
 # Open both files and print the contents of the datasets.
 file1 = h5py.h5f.open(FILE1)
@@ -200,10 +195,12 @@ dset2 = h5py.h5d.open(file2, "animation")
 bufnew = np.zeros((DIM1, DIM2), dtype=np.double)
 dset1.read(h5py.h5s.ALL, h5py.h5s.ALL, bufnew)
 
-
+'''
 #Debugging, quick view of what is in the copied HDF file
 print("\nDataset '%s' in file '%s' contains:" % (DATASET1, FILE1))
 print(bufnew)
+'''
+
 
 
 
