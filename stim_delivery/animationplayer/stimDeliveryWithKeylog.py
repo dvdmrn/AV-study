@@ -267,6 +267,7 @@ def trialLoop():
     global done
     global frameIndex
     global trialIndex
+    global keylogData
 
    # trial += 1
     gameExit = False
@@ -276,115 +277,115 @@ def trialLoop():
     print("Current Trial: ",str(trial))
 
     # count from 0 to length of list - 1 , since range is 0 to 1 before shortest_list
-    for x in range(0, shortest_list):
-        #print "Number of trial indexes to run %d" % (x)
-        trial += 1
 
-        if trial >= shortest_list:
-            gameEnd()
+    #print "Number of trial indexes to run %d" % (x)
+    trial += 1
 
-        # HDFfilepath = hdf_dirs[0]
-        file = sorted_hdf_dirs[trialIndex]
-        print 'hdf name :', sorted_hdf_dirs[trialIndex]
+    if trial >= shortest_list:
+        gameEnd()
 
-        #HDFfilepath = os.path.abspath(file)
-        #print ('hdf_path2', os.path.abspath(file))
+    # HDFfilepath = hdf_dirs[0]
+    file = sorted_hdf_dirs[trialIndex]
+    print 'hdf name :', sorted_hdf_dirs[trialIndex]
 
-        HDFfilepath = os.path.join(hdf_dir, sorted_hdf_dirs[trialIndex])
-        print 'Current hdf_path: ', HDFfilepath
+    #HDFfilepath = os.path.abspath(file)
+    #print ('hdf_path2', os.path.abspath(file))
 
-        #todo is this the issue?
-        h5file = open_file(HDFfilepath, mode="r+", title="Test file")
-        table = h5file.root.animation
-        #print("loop table", table)
+    HDFfilepath = os.path.join(hdf_dir, sorted_hdf_dirs[trialIndex])
+    print 'Current hdf_path: ', HDFfilepath
 
-        # wav file path
-        soundfile = sorted_wav_dirs[trialIndex]
+    #todo is this the issue?
+    h5file = open_file(HDFfilepath, mode="r+", title="Test file")
+    table = h5file.root.animation
+    #print("loop table", table)
 
-        soundFilePath = os.path.join(wav_dir, sorted_wav_dirs[trialIndex])
-        print('\n')
-        print('IN TRIAL ', trial, 'sound file :', sorted_wav_dirs[trialIndex])
-        # print('Current soundfile name :', sorted_wav_dirs[trialIndex])
-        #print(soundfile)
+    # wav file path
+    soundfile = sorted_wav_dirs[trialIndex]
 
-        trialIndex += 1
+    soundFilePath = os.path.join(wav_dir, sorted_wav_dirs[trialIndex])
+    print('\n')
+    print('IN TRIAL ', trial, 'sound file :', sorted_wav_dirs[trialIndex])
+    # print('Current soundfile name :', sorted_wav_dirs[trialIndex])
+    #print(soundfile)
 
-        # constructs array of frame vals
-        # !!! min max values can be found in here \/ below
-        frames = [x for x in table.iterrows()]
-        done = False
-        frameIndex = 0
-        ball()
+    trialIndex += 1
 
-        start_ticks = pygame.time.get_ticks()  # starter tick
+    # constructs array of frame vals
+    # !!! min max values can be found in here \/ below
+    frames = [x for x in table.iterrows()]
+    done = False
+    frameIndex = 0
+    ball()
 
-        hasExported = False # by default, the csv file has not been exported
+    start_ticks = pygame.time.get_ticks()  # starter tick
 
-        while not gameExit:
+    hasExported = False # by default, the csv file has not been exported
 
-            while gameOver == False:
+    while not gameExit:
 
-                numSecondsToWait = 7  #number of seconds to wait before going to the next trial
-                seconds = (pygame.time.get_ticks() - start_ticks) / (numSecondsToWait* 100)  # calculate how many seconds
-                countdownSeconds = numSecondsToWait-seconds
-                if seconds > numSecondsToWait:  # if more than numSecondsToWait seconds go to the next trial
-                    trialLoop()
-                    gameEnd()
-                if hasExported == False:  #This ensures the .csv file is only written once
-                    hasExported = True
-                    print('\n')
-                    print(trialMessage)
-                    exportVals(keylogData)
+        while gameOver == False:
 
-
-                countdownMessage = "Next trial is in  " + str(countdownSeconds) + " seconds."
-                #print("count down Message: ", countdownMessage)
+            numSecondsToWait = 7  #number of seconds to wait before going to the next trial
+            seconds = (pygame.time.get_ticks() - start_ticks) / (numSecondsToWait* 100)  # calculate how many seconds
+            countdownSeconds = numSecondsToWait-seconds
+            if seconds > numSecondsToWait:  # if more than numSecondsToWait seconds go to the next trial
+                trialLoop()
+                gameEnd()
+            if hasExported == False:  #This ensures the .csv file is only written once
+                hasExported = True
+                print('\n')
+                print(trialMessage)
+                exportVals(keylogData)
 
 
-                screen.fill(WHITE)
-                message_to_screen(trialMessage,
-                                  RED,
-                                  y_displace=-40,
-                                  size="large")
-
-                message_to_screen(countdownMessage,
-                                  BLACK,
-                                  50,
-                                  size="medium")
-
-                '''message_to_screen("Please take a break.",
-                                  BLACK,
-                                  50,
-                                  size="medium")
-                '''
-
-                message_to_screen("Press C to start the next trial",
-                                  BLACK,
-                                  120)
-
-                pygame.display.update()
+            countdownMessage = "Next trial is in  " + str(countdownSeconds) + " seconds."
+            #print("count down Message: ", countdownMessage)
 
 
-                for event in pygame.event.get():
+            screen.fill(WHITE)
+            message_to_screen(trialMessage,
+                              RED,
+                              y_displace=-40,
+                              size="large")
 
-                    if event.type == pygame.QUIT:
-                        gameOver = False
+            message_to_screen(countdownMessage,
+                              BLACK,
+                              50,
+                              size="medium")
+
+            '''message_to_screen("Please take a break.",
+                              BLACK,
+                              50,
+                              size="medium")
+            '''
+
+            message_to_screen("Press C to start the next trial",
+                              BLACK,
+                              120)
+
+            pygame.display.update()
+
+
+            for event in pygame.event.get():
+
+                if event.type == pygame.QUIT:
+                    gameOver = False
+                    gameExit = True
+
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_q:
                         gameExit = True
+                        gameOver = True
+                        gameEnd()
+                    if event.key == pygame.K_c:
+                        trialLoop()
+                        gameEnd()
+                #Export data when done a trial not during since the particpants is using it
+                    if event.key == pygame.K_e:
+                        exportVals(keylogData)
 
-                    if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_q:
-                            gameExit = True
-                            gameOver = True
-                            gameEnd()
-                        if event.key == pygame.K_c:
-                            trialLoop()
-                            gameEnd()
-                    #Export data when done a trial not during since the particpants is using it
-                        if event.key == pygame.K_e:
-                            exportVals(keylogData)
-
-                #clock.tick(FPS)
-                clock.tick(frameRate)
+            #clock.tick(FPS)
+            clock.tick(frameRate)
 
     #pygame.quit()
     #quit()
@@ -409,6 +410,7 @@ def inferFrameRate(frames, soundFilePath):
 def ball():
     smoothY = 0
     global frameRate
+    global keylogData
     print('Sound file used: ', soundFilePath)
     frameRate = inferFrameRate(frames, soundFilePath)
 
@@ -516,6 +518,7 @@ def ball():
 
         # make sure Index does not go out of bounds
         if frameIndex == len(frames)-1:
+            print("keylogdata :"+str(keylogData.items()[0])+"..."+str(keylogData.items()[20])+"...")
             gameOver = True
             done = True
 
@@ -523,7 +526,7 @@ def ball():
 
 
 def exportVals(klData):
-
+    global keylogData
     currentHdfName = sorted_hdf_dirs[trialIndex].split(".")[0]
     currentHdfName = currentHdfName.split('_', 1)[-1]
     print('currentHdfName', currentHdfName)
@@ -535,11 +538,12 @@ def exportVals(klData):
         fieldnames = ['time', 'keypress']
         writer = csv.writer(csvfile)
         # writer.writeheader()
-        keylogData = klData.items()
+        keylogDataOutput = klData.items()
         print "writing " +  currentHdfName + ".csv"
-        for e in keylogData:
+        for e in keylogDataOutput:
             writer.writerow(e)
         print "finished writing file"
+        keylogData = collections.OrderedDict()
         print('\n')
 
 
