@@ -54,7 +54,7 @@ soundFilePath = ""
 
 numBlanksToAdd = 10
 
-# TODO works with HDF Dir
+# TODO generates list for HDF files
 hdf_dir = '../data/trials/hdfConditions/'
 #hdf_dirs = sorted(os.listdir( hdf_dir ))
 sorted_hdf_dirs = sorted(os.listdir( hdf_dir ))
@@ -73,7 +73,7 @@ for file in sorted_hdf_dirs:
    #print('combine the paths: ', hdf_dir+file)
 
 
-# TODO for sound WAV
+# TODO generates list for sound WAV files
 wav_dir = '../data/trials/wavConditions/'
 #wav_dirs = sorted(os.listdir( wav_dir ))
 wav_dirs = os.listdir( wav_dir )
