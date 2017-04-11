@@ -48,7 +48,7 @@ from os.path import isfile, join
 current_dir = os.getcwd()
 #print ("current dir: ",current_dir)
 
-trial = 0
+trial = 1
 trialIndex = 0
 soundFilePath = ""
 
@@ -98,6 +98,7 @@ if len(sorted_hdf_dirs) < len(sorted_wav_dirs):
 else:
     shortest_list = len(sorted_wav_dirs)
 print('fewest number of files: ',shortest_list)
+print ('/n')
 
 # ----------------------------------------------------------------
 #      pytables
@@ -112,9 +113,12 @@ print('hdffilepath :', sorted_hdf_dirs[trial])
 
 # opens h5file
 # !!!
+# prints two lists, one for the hdf file, another for hdf files in the folder
+for root, dirs, files in os.walk(hdf_dir):
+    print "get the files", files
+
 HDFfilepath = os.path.join(hdf_dir, sorted_hdf_dirs[trialIndex])
 h5file = open_file(HDFfilepath, mode="r+", title="Trial file")
-
 
 # attempt at adding blank rows in existing HDF file
 '''
@@ -273,17 +277,11 @@ def trialLoop():
    # trial += 1
     gameExit = False
     gameOver = False
-    trialMessage = "Trial " + str(trial+1) + " is over"
+    trialMessage = "Trial " + str(trial) + " is over"
 
     print("Current Trial: ",str(trial))
 
     # count from 0 to length of list - 1 , since range is 0 to 1 before shortest_list
-
-    #print "Number of trial indexes to run %d" % (x)
-    trial += 1
-
-    if trial >= shortest_list:
-        gameEnd()
 
     # HDFfilepath = hdf_dirs[0]
     file = sorted_hdf_dirs[trialIndex]
@@ -309,7 +307,6 @@ def trialLoop():
     # print('Current soundfile name :', sorted_wav_dirs[trialIndex])
     #print(soundfile)
 
-    trialIndex += 1
 
     # constructs array of frame vals
     # !!! min max values can be found in here \/ below
@@ -387,6 +384,14 @@ def trialLoop():
 
             #clock.tick(FPS)
             clock.tick(frameRate)
+
+  # print "Number of trial indexes to run %d" % (x)
+    trial += 1
+
+    if trial > shortest_list:
+        gameEnd()
+
+    trialIndex += 1
 
     #pygame.quit()
     #quit()
@@ -471,6 +476,18 @@ def ball():
         framePosition = int(round(interp(frames[frameIndex][0], np.array([min(frames)[0], max(frames)[0]]),
                                         np.array([0 + radius + borderGap, height - radius - borderGap]))))
 
+        '''
+        # Use this if you want to switch the peak of the sound to when the ball touches the ground
+        # framePosition if numbers were positive * -1 offset, then the biggest value 0.9 becomes the smallest -0.9.
+        # counteract the switch, - height from it
+        # or ensure HDF frame input are all positive values (no *-1 offset in animation player) to avoid switch
+        # check to make sure the max frames are not a negative number, if it's negative, switch, if not stay
+        if max(frames)[0] < 0:
+            yPos = abs(framePosition - height)
+        else:
+            yPos = framePosition
+        '''
+
         yPos = abs(framePosition - height)
 
         if yPos < 0:
@@ -489,7 +506,6 @@ def ball():
         #keylogFrameData[currentTime] = frames[frameIndex][0]
         frameLogging = interp(frames[frameIndex][0], np.array([min(frames)[0], max(frames)[0]]),
                                         np.array([0,1]))
-
         keylogFrameData[currentTime] = frameLogging
 
 
