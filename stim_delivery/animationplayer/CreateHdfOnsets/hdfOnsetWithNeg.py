@@ -57,7 +57,6 @@ print("selected filename without order " ,selectedFileNameNoOrder)
 
 trial = 0
 trialIndex = 0
-global totalframes
 
 '''
 # TODO works with HDF Dir, use this if we want to create offsets for all the files in the data folders
@@ -100,10 +99,7 @@ table = h5file.root.animation
 
 # constructs array of frame vals
 frames = [x for x in table.iterrows()]
-
-# determine the total frames needed in the HDF file
-totalframes  = len(frames) + numOffsetBlanksToAdd
-
+totalframes = len(frames) + numOffsetBlanksToAdd
 # print("show frames", frames)
 print("total num frames", totalframes)
 frames = [x for x in table.iterrows()]
@@ -151,7 +147,6 @@ dset2 = h5py.h5d.open(file2, DATASET2)
 
 fid1 = dset1.get_space()
 mid1 = h5py.h5s.create_simple((len(frames),))
-#mid1 = h5py.h5s.create_simple((totalframes,))
 
 # Open the two files.  Select two point in one file, write values to
 # those point locations, then copy and write the values to the other
@@ -161,18 +156,10 @@ mid1 = h5py.h5s.create_simple((len(frames),))
 
 coord = np.zeros((len(frames),2))
 
-# The max times the for loop has to check each frame value in the original HDF file
 maxRange = len(frames)
 
-# checks if the input value is positive or negative
-# if the x coordinate becomes a negative value then do not add it (remove these frames)
-# only add x coordinates that are positive
 for i in range(maxRange):
-   if numOffsetBlanksToAdd > 0:
-      coord[i] = [i+numOffsetBlanksToAdd,0]
-   else:
-      if i + numOffsetBlanksToAdd > 0:
-         coord[i] = [i + numOffsetBlanksToAdd, 0]
+   coord[i] = [i+numOffsetBlanksToAdd,0]
 
 #coord[len(frames)] = [0,0]
 
