@@ -53,6 +53,7 @@ trialIndex = 0
 soundFilePath = ""
 
 numBlanksToAdd = 10
+numOfRepeatedSoundFiles = 0
 
 # TODO generates list for HDF files
 hdf_dir = '../data/trials/hdfConditions/'
@@ -62,6 +63,7 @@ sorted_hdf_dirs = sorted(os.listdir( hdf_dir ))
 print('\n')
 #print('sorted hdf_dirs ', sorted_hdf_dirs)
 
+
 hdf_dirs = os.listdir( hdf_dir )
 #print('hdf_dirs ', hdf_dirs)
 
@@ -69,16 +71,34 @@ print("Sorted Files in HDF")
 # This would print all the files and directories
 for file in sorted_hdf_dirs:
    print file
-   #print os.path.abspath(file)
-   #print('combine the paths: ', hdf_dir+file)
+
+
+
+print('\n')
+numOfRepeatedSoundFiles = int(raw_input("Please enter the number of time to repeat sound files: "))
+print "Number of time to repeat sound files is set as: ", numOfRepeatedSoundFiles
 
 
 # TODO generates list for sound WAV files
 wav_dir = '../data/trials/wavConditions/'
 #wav_dirs = sorted(os.listdir( wav_dir ))
+
+sorted_wav_dirs = []
+print("make sure sorted wav list is reset: ", sorted_wav_dirs)
+
+
 wav_dirs = os.listdir( wav_dir )
-#print('wav_dirs ', wav_dirs)
+print('wav_dirs ', wav_dirs)
 sorted_wav_dirs = sorted(os.listdir( wav_dir ))
+
+for n in range(numOfRepeatedSoundFiles-1):
+    for i in range(len(wav_dirs)):
+        sorted_wav_dirs.append(wav_dirs[i])
+
+
+# resort the list
+sorted_wav_dirs = sorted(sorted_wav_dirs)
+
 #print('sorted_wav_dirs', sorted_wav_dirs)
 print('\n')
 
@@ -97,8 +117,14 @@ if len(sorted_hdf_dirs) < len(sorted_wav_dirs):
     shortest_list = len(sorted_hdf_dirs)
 else:
     shortest_list = len(sorted_wav_dirs)
-print('fewest number of files: ',shortest_list)
+print('Fewest number of files, shortest list: ',shortest_list)
 print ('/n')
+
+
+print('\n')
+pid = raw_input("Please enter the participant id: ")
+print "PID is set as: ", pid
+
 
 # ----------------------------------------------------------------
 #      pytables
@@ -108,8 +134,8 @@ class Animation(IsDescription):
     frame = Float64Col()
 
 
-HDFfilepath = sorted_hdf_dirs[trial]
-print('hdffilepath :', sorted_hdf_dirs[trial])
+HDFfilepath = sorted_hdf_dirs[trialIndex]
+print('hdffilepath :', sorted_hdf_dirs[trialIndex])
 
 # opens h5file
 # !!!
@@ -205,10 +231,6 @@ FPS = 15
 smallfont = pygame.font.SysFont("comicsansms", 25)
 medfont = pygame.font.SysFont("comicsansms", 50)
 largefont = pygame.font.SysFont("comicsansms", 80)
-
-print('\n')
-pid = raw_input("Please enter the participant id: ")
-print "PID is set as: ", pid
 
 def text_objects(text, color, size):
     if size == "small":
@@ -319,12 +341,21 @@ def trialLoop():
 
     hasExported = False # by default, the csv file has not been exported
     # print "Number of trial indexes to run %d" % (x)
+
+    if trial == shortest_list:
+        if hasExported == False:  # This ensures the .csv file is only written once
+            hasExported = True
+            print('\n')
+            print(trialMessage)
+            exportVals(keylogData, keylogFrameData)
+
     trial += 1
 
     if trial > shortest_list:
         gameEnd()
 
     trialIndex += 1
+
     while not gameExit:
 
         while gameOver == False:
@@ -390,8 +421,6 @@ def trialLoop():
 
             #clock.tick(FPS)
             clock.tick(frameRate)
-
-
 
     #pygame.quit()
     #quit()
@@ -529,7 +558,7 @@ def ball():
                 if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT or event.key == pygame.K_SPACE:
                     pressVal = 0
 
-            #clock.tick(FPS)
+            #clock.tick(FPS)q
             clock.tick(frameRate)
 
         # Clear the screen and set the screen background
@@ -557,12 +586,13 @@ def exportVals(klData, klfData):
     global keylogFrameData
     currentHdfName = sorted_hdf_dirs[trialIndex].split(".")[0]
     currentHdfName = currentHdfName.split('_', 1)[-1]
+    currentHdfName = currentHdfName.split(" ")[0]
     print('currentHdfName', currentHdfName)
 
     # Key Log Data, save in the participant_data folder
     # Record the time and key log responses
     #with open('pid' + pid + '_trial' + str(trial) + '_' + currentHdfName + '.csv', 'w') as csvfile:
-    with open('../data/participant_data/' + 'pid' + pid + '_trial' + str(trial) + '_' + currentHdfName + '_' + 'keylog' + '.csv', 'wb') as csvfile:
+    with open('../data/participant_data/' + 'pid' + pid + '_trial' + str(trial-1) + '_' + currentHdfName + '_' + 'keylog' + '.csv', 'wb') as csvfile:
         fieldnames = ['time', 'keypress']
         writer = csv.writer(csvfile)
         # writer.writeheader()
@@ -575,7 +605,7 @@ def exportVals(klData, klfData):
         print('\n')
 
     # Record the same time and frame rate for the trial
-    with open('../data/participant_data/' + 'pid' + pid + '_trial' + str(trial) + '_' + currentHdfName + '_' + 'frames' + '.csv','wb') as csvframefile:
+    with open('../data/participant_data/' + 'pid' + pid + '_trial' + str(trial-1) + '_' + currentHdfName + '_' + 'frames' + '.csv','wb') as csvframefile:
         fieldnames2 = ['time', 'frames']
         writer = csv.writer(csvframefile)
         # writer.writeheader()
@@ -593,18 +623,6 @@ def gameEnd():
     global trial
 
     while end:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
-
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_c:
-                    intro = False
-                if event.key == pygame.K_q:
-                    pygame.quit()
-                    quit()
-
         screen.fill(WHITE)
         message_to_screen("Thank you for completing the experiment",
                           BLUE,
@@ -617,6 +635,18 @@ def gameEnd():
         message_to_screen("Close the window or press Q to quit.",
                           BLACK,
                           70)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_c:
+                    intro = False
+                if event.key == pygame.K_q:
+                    pygame.quit()
+                    quit()
 
         pygame.display.update()
         #clock.tick(FPS)
