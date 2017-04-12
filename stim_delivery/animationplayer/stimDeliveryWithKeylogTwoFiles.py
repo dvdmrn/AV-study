@@ -533,8 +533,11 @@ def ball():
         currentTime = currentTime - initTime
         keylogData[currentTime] = pressVal
         #keylogFrameData[currentTime] = frames[frameIndex][0]
-        frameLogging = interp(frames[frameIndex][0], np.array([min(frames)[0], max(frames)[0]]),
-                                        np.array([0,1]))
+        #frameLogging = interp(frames[frameIndex][0], np.array([min(frames)[0], max(frames)[0]]),
+        #                                np.array([0,1]))
+
+        #save the same values in the HDF to the file
+        frameLogging = frames[frameIndex][0]
         keylogFrameData[currentTime] = frameLogging
 
 
@@ -584,7 +587,7 @@ def ball():
 def exportVals(klData, klfData):
     global keylogData
     global keylogFrameData
-    currentHdfName = sorted_hdf_dirs[trialIndex].split(".")[0]
+    currentHdfName = sorted_hdf_dirs[trialIndex-1].split(".")[0]
     currentHdfName = currentHdfName.split('_', 1)[-1]
     currentHdfName = currentHdfName.split(" ")[0]
     print('currentHdfName', currentHdfName)
