@@ -318,7 +318,13 @@ def trialLoop():
     start_ticks = pygame.time.get_ticks()  # starter tick
 
     hasExported = False # by default, the csv file has not been exported
+    # print "Number of trial indexes to run %d" % (x)
+    trial += 1
 
+    if trial > shortest_list:
+        gameEnd()
+
+    trialIndex += 1
     while not gameExit:
 
         while gameOver == False:
@@ -385,13 +391,7 @@ def trialLoop():
             #clock.tick(FPS)
             clock.tick(frameRate)
 
-  # print "Number of trial indexes to run %d" % (x)
-    trial += 1
 
-    if trial > shortest_list:
-        gameEnd()
-
-    trialIndex += 1
 
     #pygame.quit()
     #quit()
