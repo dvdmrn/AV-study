@@ -533,11 +533,16 @@ def ball():
         currentTime = currentTime - initTime
         keylogData[currentTime] = pressVal
         #keylogFrameData[currentTime] = frames[frameIndex][0]
-        #frameLogging = interp(frames[frameIndex][0], np.array([min(frames)[0], max(frames)[0]]),
-        #                                np.array([0,1]))
+        #TODO use the first frameLogging
+        #  for use with cross-correlation, to make values from 0 to 1. Converts HDF frames to 0 to 1 and
+        # combinse with trial time
+        frameLogging = interp(frames[frameIndex][0], np.array([min(frames)[0], max(frames)[0]]),
+                                        np.array([0,1]))
 
+        #TODO use this second frameLgogging for use for comparing time to HDF frames quickly in one file, same as HDF file but with time
+        # Used this for the first pilot, but the first frameLogging is more useful for later data analysis. Another file was used to merge cells
         #save the same values in the HDF to the file
-        frameLogging = frames[frameIndex][0]
+        # frameLogging = frames[frameIndex][0]
         keylogFrameData[currentTime] = frameLogging
 
 
